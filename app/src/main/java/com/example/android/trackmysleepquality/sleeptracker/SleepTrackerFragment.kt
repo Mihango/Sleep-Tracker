@@ -22,7 +22,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.example.android.trackmysleepquality.R
+import com.example.android.trackmysleepquality.database.SleepDatabase
 import com.example.android.trackmysleepquality.databinding.FragmentSleepTrackerBinding
 
 /**
@@ -31,6 +33,8 @@ import com.example.android.trackmysleepquality.databinding.FragmentSleepTrackerB
  * (Because we have not learned about RecyclerView yet.)
  */
 class SleepTrackerFragment : Fragment() {
+
+    private lateinit var sleepTrackerViewModel: SleepTrackerViewModel
 
     /**
      * Called when the Fragment is ready to display content to the screen.
@@ -43,6 +47,17 @@ class SleepTrackerFragment : Fragment() {
         // Get a reference to the binding object and inflate the fragment views.
         val binding: FragmentSleepTrackerBinding = DataBindingUtil.inflate(
                 inflater, R.layout.fragment_sleep_tracker, container, false)
+
+        // initiate ViewModel
+        val application = requireNotNull(activity).application
+        val dataSource = SleepDatabase.getInstance(application).sleepDatabaseDao
+        val viewModelFactory = SleepTrackerViewModelFactory(dataSource, application)
+        sleepTrackerViewModel = ViewModelProvider(this, viewModelFactory)[SleepTrackerViewModel::class.java]
+
+        binding.sleepTrackerViewModel = sleepTrackerViewModel
+
+        // set lifecycle owner for the binding to observe live data in xml
+        binding.lifecycleOwner = this
 
         return binding.root
     }
