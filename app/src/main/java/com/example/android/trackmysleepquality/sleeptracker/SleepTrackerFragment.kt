@@ -17,12 +17,15 @@
 package com.example.android.trackmysleepquality.sleeptracker
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.example.android.trackmysleepquality.R
 import com.example.android.trackmysleepquality.database.SleepDatabase
 import com.example.android.trackmysleepquality.databinding.FragmentSleepTrackerBinding
@@ -59,6 +62,20 @@ class SleepTrackerFragment : Fragment() {
         // set lifecycle owner for the binding to observe live data in xml
         binding.lifecycleOwner = this
 
+
+        sleepTrackerViewModel.navigateSleepQuality.observe(viewLifecycleOwner, Observer { night ->
+            night?.let {
+                Log.e("Navigate", "Quality Fragment")
+                this.findNavController().navigate(
+                        SleepTrackerFragmentDirections
+                                .actionSleepTrackerFragmentToSleepQualityFragment(night.nightId))
+                sleepTrackerViewModel.doneNavigating()
+            }
+        })
+
         return binding.root
     }
+
 }
+
+

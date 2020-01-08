@@ -17,10 +17,14 @@
 package com.example.android.trackmysleepquality.sleeptracker
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
 import com.example.android.trackmysleepquality.database.SleepDatabaseDao
 import com.example.android.trackmysleepquality.database.SleepNight
+import com.example.android.trackmysleepquality.formatNights
 import kotlinx.coroutines.*
 
 /**
@@ -36,6 +40,14 @@ class SleepTrackerViewModel(
     private var tonight = MutableLiveData<SleepNight?>()
     private val nights = database.getAllNights()
 
+    val nightString = Transformations.map(nights) { sleepNights ->
+        formatNights(sleepNights, application.resources)
+    }
+
+    private val _navigateToSleepQuality = MutableLiveData<SleepNight>()
+    val navigateSleepQuality: LiveData<SleepNight>
+        get() = _navigateToSleepQuality
+
     init {
         initializeTonight()
     }
@@ -49,9 +61,10 @@ class SleepTrackerViewModel(
     private suspend fun getTonightFromDatabase(): SleepNight? {
         return withContext(Dispatchers.IO) {
             var night = database.getTonight()
-            if (night?.startTimeMilli == night?.endTimeMilli) {
-                night = null
-            }
+//            if (night?.startTimeMilli == night?.endTimeMilli) {
+//                night = null
+//            }
+            Log.e("Init Tonight", "is null >>>>>>> ${night == null}")
             night
         }
     }
@@ -61,6 +74,7 @@ class SleepTrackerViewModel(
             val newNight = SleepNight()
             insert(newNight)
             tonight.value = getTonightFromDatabase()
+            Log.e("Init onStartTracking", "is null >>>>>>> ${tonight.value == null}")
         }
     }
 
@@ -68,6 +82,40 @@ class SleepTrackerViewModel(
         withContext(Dispatchers.IO) {
             database.insert(sleepNight)
         }
+    }
+
+    fun onStopTracking() {
+        Log.e("Stop Tracking", "ViewModel Tracker ${tonight.value == null}")
+        uiScope.launch {
+            val oldNight = tonight.value ?: return@launch
+            Log.e("Current Night", "Sleep is not null")
+            oldNight.endTimeMilli = System.currentTimeMillis()
+            update(oldNight)
+            _navigateToSleepQuality.value = oldNight
+        }
+    }
+
+    private suspend fun update(sleepNight: SleepNight) {
+        withContext(Dispatchers.IO) {
+            database.update(sleepNight)
+        }
+    }
+
+    fun onClear() {
+        uiScope.launch {
+            clear()
+            tonight.value = null
+        }
+    }
+
+    private suspend fun clear() {
+        withContext(Dispatchers.IO) {
+            database.clear()
+        }
+    }
+
+    fun doneNavigating() {
+        _navigateToSleepQuality.value = null
     }
 
 
