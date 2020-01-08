@@ -30,6 +30,7 @@ import kotlinx.coroutines.*
 /**
  * ViewModel for SleepTrackerFragment.
  */
+
 class SleepTrackerViewModel(
         val database: SleepDatabaseDao,
         application: Application) : AndroidViewModel(application) {
@@ -61,6 +62,7 @@ class SleepTrackerViewModel(
     private suspend fun getTonightFromDatabase(): SleepNight? {
         return withContext(Dispatchers.IO) {
             var night = database.getTonight()
+//            todo check below code
 //            if (night?.startTimeMilli == night?.endTimeMilli) {
 //                night = null
 //            }

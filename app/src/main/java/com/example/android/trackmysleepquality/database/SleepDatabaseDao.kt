@@ -37,10 +37,6 @@ interface SleepDatabaseDao {
     @Query("DELETE FROM daily_sleep_quality_table")
     fun clear()
 
-    // get latest night - with highest id
-//    @Query("SELECT * FROM daily_sleep_quality_table LIMIT 1")
-//    fun getTonight(): SleepNight?
-
     @Query("SELECT * FROM daily_sleep_quality_table ORDER BY nightId DESC LIMIT 1")
     fun getTonight(): SleepNight?
 
